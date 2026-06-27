@@ -1,5 +1,6 @@
 @layer theme, base, components, utilities, mui;
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
 
 @theme inline {
   --color-primary: var(--color-indigo-500);
