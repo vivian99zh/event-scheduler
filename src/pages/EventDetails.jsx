@@ -12,11 +12,15 @@ import {
 } from "@mui/material";
 import { AccessTime, LocationOn, ArrowBack } from "@mui/icons-material";
 import { API_URL } from "../config";
+import LocationMap from "../components/LocationMap";
+import { geocodeAddress } from "../services/geocodingService";
 
 const EventDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
+  const [coords, setCoords] = useState(null);
+  const [geocoding, setGeocoding] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -29,6 +33,15 @@ const EventDetails = () => {
         if (!res.ok) throw new Error("failed to fetch");
         const data = await res.json();
         setEvent(data);
+        // Geocode location for map
+        if (data.location) {
+          setGeocoding(true);
+          const result = await geocodeAddress(data.location);
+          if (result) {
+            setCoords({ lat: result.lat, lng: result.lng });
+          }
+          setGeocoding(false);
+        }
       } catch (err) {
         setError(err.userMessage || "Failed to load event details");
         console.error("Error fetching event:", err);
@@ -71,7 +84,7 @@ const EventDetails = () => {
   }
 
   return (
-    <Box className="max-w-2xl mx-auto mt-15">
+    <Box className="max-w-5xl mx-auto mt-15">
       <Button startIcon={<ArrowBack />} onClick={() => navigate(-1)} className="mb-4">
         Back to Events
       </Button>
@@ -90,6 +103,14 @@ const EventDetails = () => {
               </Typography>
             </Box>
 
+            <Divider className="my-4" />
+
+            <Typography variant="body1" className="mb-4">
+              {event.description || "No description provided."}
+            </Typography>
+
+            <Divider className="my-4" />
+
             {event.location && (
               <Box className="flex items-center gap-2 text-gray-600">
                 <LocationOn color="action" />
@@ -98,11 +119,40 @@ const EventDetails = () => {
             )}
           </Box>
 
-          <Divider className="my-4" />
+          <Box className="space-y-4 mb-6">
+            {coords ? (
+              <LocationMap
+                lat={coords.lat}
+                lng={coords.lng}
+                name={event.location || event.title}
+                height="300px"
+              />
+            ) : geocoding ? (
+              <div className="flex items-center justify-center h-[250px] bg-gray-50 rounded-lg">
+                <CircularProgress size={30} />
+                <p className="text-sm text-gray-500 ml-2">Loading map...</p>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-[250px] bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-sm text-gray-500">📍 No location data</p>
+              </div>
+            )}
 
-          <Typography variant="body1" className="mb-4">
-            {event.description || "No description provided."}
-          </Typography>
+            {coords && (
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<LocationOn />}
+                onClick={() => {
+                  const url = `https://www.openstreetmap.org/directions?from=&to=${coords.lat}%2C${coords.lng}`;
+                  window.open(url, "_blank");
+                }}
+                className="bg-primary text-white justify-center"
+              >
+                Get Directions
+              </Button>
+            )}
+          </Box>
 
           <Divider className="my-4" />
 

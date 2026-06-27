@@ -13,6 +13,7 @@ import {
 
 import { useAuth } from "../contexts/AuthProvider";
 import { API_URL } from "../config";
+import LocationAutocomplete from "../components/LocationAutocomplete";
 
 const CreateEvent = () => {
   const navigate = useNavigate();
@@ -39,7 +40,6 @@ const CreateEvent = () => {
     try {
       setLoading(true);
       setError(null);
-
       const res = await fetch(`${API_URL}/events`, {
         method: "POST",
         headers: getHeaders(),
@@ -122,8 +122,7 @@ const CreateEvent = () => {
                 }}
               />
 
-              <TextField
-                fullWidth
+              <LocationAutocomplete
                 label="Location"
                 name="location"
                 value={formData.location}
@@ -133,7 +132,7 @@ const CreateEvent = () => {
               />
             </Box>
 
-            <Box className="flex gap-4 mt-6">
+            <Box className="flex gap-4 my-4">
               <Button
                 type="submit"
                 variant="contained"
